@@ -1,0 +1,54 @@
+name: lmpify
+
+on:
+  workflow_dispatch:
+    inputs:
+      images:
+        description: "Comma-separated list of images that need to be lmplified"
+        required: true
+      registry:
+        description: "Destination image registry"
+        required: false
+      namespace:
+        description: "Destination image registry namespace"
+        required: false
+      username:
+        description: "Username for destination image registry"
+        required: false
+      password:
+        description: "Password for destination image registry"
+        required: false
+        secret: true
+      enable-overwrite:
+        type: boolean
+        description: "Enable overwrite the existing images"
+        required: false
+        default: false
+      enable-skopeo-debug:
+        type: boolean
+        description: "Turn on debug message for skopeo"
+        required: false
+        default: false
+
+jobs:
+  lmpify:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Execute do-lmpify.sh
+        env:
+          IMAGES: ${{ inputs.images }}
+          DSTINATION_IMAGE_REGISTRY: ${{ inputs.registry || secrets.DSTINATION_IMAGE_REGISTRY }}
+          DSTINATION_IMAGE_REGISTRY_NAMESPACE: ${{ inputs.namespace || secrets.DSTINATION_IMAGE_REGISTRY_NAMESPACE }}
+          DSTINATION_IMAGE_REGISTRY_USERNAME: ${{ inputs.username || secrets.DSTINATION_IMAGE_REGISTRY_USERNAME }}
+          DSTINATION_IMAGE_REGISTRY_PASSWORD: ${{ inputs.password || secrets.DSTINATION_IMAGE_REGISTRY_PASSWORD }}
+          LMPIFY_ENABLE_OVERWRITE: ${{ inputs.enable-overwrite }}
+          LMPIFY_ENABLE_SKOPEO_DEBUG: ${{ inputs.enable-skopeo-debug }}
+        run: |
+          ./.github/scripts/do-lmpify.sh -i "${IMAGES}" \
+            -r "${DSTINATION_IMAGE_REGISTRY}" \
+            -n "${DSTINATION_IMAGE_REGISTRY_NAMESPACE}" \
+            -u "${DSTINATION_IMAGE_REGISTRY_USERNAME}" \
+            -p "${DSTINATION_IMAGE_REGISTRY_PASSWORD}"
